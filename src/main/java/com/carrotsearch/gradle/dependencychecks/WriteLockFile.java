@@ -1,11 +1,10 @@
 package com.carrotsearch.gradle.dependencychecks;
 
+import java.io.IOException;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-
-import java.io.IOException;
 
 /**
  * Aggregate several resolved configuration groups and write a lock file, checking dependency sanity

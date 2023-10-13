@@ -1,10 +1,12 @@
 package com.carrotsearch.gradle.dependencychecks;
 
+import static com.carrotsearch.gradle.dependencychecks.CheckLocks.fmt;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFiles;
@@ -46,27 +48,31 @@ abstract class AbstractLockFileTask extends DefaultTask {
                       .values()
                       .stream()
                       .filter(list -> list.size() > 1)
-                      .collect(Collectors.toList());
+                      .toList();
 
-              if (inconsistentGroups.size() > 1) {
+              if (!inconsistentGroups.isEmpty()) {
                 StringBuilder buf = new StringBuilder();
+                buf.append(
+                    fmt(
+                        "Multiple versions of the same dependency found in group '%s':\n\n",
+                        groupName));
+
                 for (int index = 0; index < inconsistentGroups.size(); index++) {
                   var list = inconsistentGroups.get(index);
-                  buf.append(
-                      String.format(
-                          Locale.ROOT, "  %s) %s%n", index + 1, list.get(0).idWithoutVersion()));
+                  buf.append(fmt("  %s) %s%n", index + 1, list.get(0).idWithoutVersion()));
                   for (var dep : list) {
                     buf.append(
-                        String.format(
-                            Locale.ROOT,
+                        fmt(
                             "       - version %s used by:%n%s",
                             dep.getVersion(),
                             dep.because.stream()
-                                .map(v -> "           ${it}")
+                                .map(v -> "           " + v)
                                 .collect(Collectors.joining("\n"))));
-                    buf.append("%n");
+                    buf.append("\n");
                   }
                 }
+
+                throw new GradleException(buf.toString());
               }
             });
   }

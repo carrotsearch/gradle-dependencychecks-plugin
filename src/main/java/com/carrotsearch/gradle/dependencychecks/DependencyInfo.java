@@ -1,12 +1,10 @@
 package com.carrotsearch.gradle.dependencychecks;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 /**
  * Information about a single (module) dependency: group, module, version and the reasons the
@@ -20,7 +18,7 @@ class DependencyInfo implements Serializable {
   private String module;
   private String version;
 
-  /** One or more "sources" of this dependency. Typically project path and configuration name. */
+  /** One or more "sources" of this dependency. Typically, project path and configuration name. */
   List<String> because = new ArrayList<>();
 
   DependencyInfo(ModuleComponentIdentifier id) {

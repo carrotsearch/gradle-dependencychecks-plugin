@@ -1,7 +1,8 @@
 plugins {
-    id 'com.gradle.plugin-publish' version '1.2.1'
-    id 'groovy'
-    id 'signing'
+  alias(deps.plugins.gradle.publish)
+  alias(deps.plugins.spotless)
+  id 'groovy'
+  id 'signing'
 }
 
 def humanName = 'dependencychecks-plugin'
@@ -10,35 +11,52 @@ project.version = '0.0.1'
 project.description = 'Dependency checker and lock file aggregator'
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
+  implementation deps.jackson
 
-    testImplementation platform("com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.7.9")
-    testImplementation "com.carrotsearch.randomizedtesting:randomizedtesting-runner"
-    testImplementation "junit:junit:"
-    testImplementation "org.assertj:assertj-core"
+  testImplementation deps.junit.jupiter
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+  testImplementation deps.assertj
+
+  testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
+  testImplementation "org.spockframework:spock-core"
+}
+
+allprojects {
+  apply plugin: 'idea'
+
+  idea {
+    module {
+      outputDir file('build/idea/classes/main')
+      testOutputDir file('build/idea/classes/test')
+      downloadSources = true
+    }
+  }
 }
 
 gradlePlugin {
-    website = 'https://github.com/carrotsearch/gradle-dependencychecks-plugin'
-    vcsUrl = 'https://github.com/carrotsearch/gradle-dependencychecks-plugin.git'
-    plugins {
-        dependencychecks {
-            id = project.group
-            implementationClass = 'com.carrotsearch.gradle.dependencychecks.DependencyChecksPlugin'
-            displayName = humanName
-            description = project.description
-            tags = ['utility']
-        }
+  website = 'https://github.com/carrotsearch/gradle-dependencychecks-plugin'
+  vcsUrl = 'https://github.com/carrotsearch/gradle-dependencychecks-plugin.git'
+  plugins {
+    dependencychecks {
+      id = project.group
+      implementationClass = 'com.carrotsearch.gradle.dependencychecks.DependencyChecksPlugin'
+      displayName = humanName
+      description = project.description
+      tags = [
+        'utility'
+      ]
     }
+  }
 }
 
 java {
-    sourceCompatibility = 17
-    targetCompatibility = 17
+  sourceCompatibility = 17
+  targetCompatibility = 17
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -47,77 +65,114 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('test', Test) {
-    useJUnit()
+  useJUnitPlatform()
 }
 
 publishing {
-    repositories {
-        maven {
-            name = 'staging'
-            url = project.layout.buildDirectory.dir("m2-local")
-        }
-
-        maven {
-            name = 'sonatype'
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-
-            credentials {
-                if (project.hasProperty('nexusUsername')) {
-                    username project.nexusUsername
-                }
-                if (project.hasProperty('nexusPassword')) {
-                    password project.nexusPassword
-                }
-            }
-        }
+  repositories {
+    maven {
+      name = 'staging'
+      url = project.layout.buildDirectory.dir("m2-local")
     }
 
-    publications {
-        withType(MavenPublication).configureEach {
-            pom {
-                inceptionYear = "2023"
+    maven {
+      name = 'sonatype'
+      url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
 
-                name = humanName
-                description = project.description
-                url = gradlePlugin.website
-
-                licenses {
-                    license {
-                        name = 'Apache 2'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                organization {
-                    name = "Carrot Search s.c."
-                    url = "https://www.carrotsearch.com"
-                }
-
-                developers {
-                    developer {
-                        id = 'dawid.weiss'
-                        name = 'Dawid Weiss'
-                        email = 'dawid.weiss@carrotsearch.com'
-                    }
-                }
-
-                scm {
-                    connection = 'scm:git:git@github.com:carrotsearch/gradle-dependencychecks-plugin.git'
-                    developerConnection = gradlePlugin.vcsUrl
-                    url = gradlePlugin.website
-                }
-            }
+      credentials {
+        if (project.hasProperty('nexusUsername')) {
+          username project.nexusUsername
         }
+        if (project.hasProperty('nexusPassword')) {
+          password project.nexusPassword
+        }
+      }
     }
+  }
+
+  publications {
+    withType(MavenPublication).configureEach {
+      pom {
+        inceptionYear = "2023"
+
+        name = humanName
+        description = project.description
+        url = gradlePlugin.website
+
+        licenses {
+          license {
+            name = 'Apache 2'
+            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        organization {
+          name = "Carrot Search s.c."
+          url = "https://www.carrotsearch.com"
+        }
+
+        developers {
+          developer {
+            id = 'dawid.weiss'
+            name = 'Dawid Weiss'
+            email = 'dawid.weiss@carrotsearch.com'
+          }
+        }
+
+        scm {
+          connection = 'scm:git:git@github.com:carrotsearch/gradle-dependencychecks-plugin.git'
+          developerConnection = gradlePlugin.vcsUrl
+          url = gradlePlugin.website
+        }
+      }
+    }
+  }
 }
 
 tasks.register("deploy", {
-    dependsOn "publishDependencychecksPluginMarkerMavenPublicationToSonatypeRepository",
-        "publishPluginMavenPublicationToSonatypeRepository",
-        publishPlugins
+  dependsOn "publishDependencychecksPluginMarkerMavenPublicationToSonatypeRepository",
+      "publishPluginMavenPublicationToSonatypeRepository",
+      publishPlugins
 })
 
 tasks.register("deployStaging", {
-    dependsOn "publishDependencychecksPluginMarkerMavenPublicationToStagingRepository",
-              "publishPluginMavenPublicationToStagingRepository"
+  dependsOn "publishDependencychecksPluginMarkerMavenPublicationToStagingRepository",
+      "publishPluginMavenPublicationToStagingRepository"
 })
+
+spotless {
+  java {
+    lineEndings 'UNIX'
+    endWithNewline()
+    googleJavaFormat('1.18.1')
+  }
+
+  groovy {
+    indentWithSpaces(4)
+    importOrder()
+
+    excludeJava()
+    greclipse().configFile rootProject.files(
+        'gradle/spotless/spotless.eclipseformat.xml',
+        'gradle/spotless/spotless.groovyformat.prefs')
+
+    licenseHeader '/* (C) $YEAR */' // or licenseHeaderFile
+  }
+
+  groovyGradle {
+    target '*.gradle', 'gradle/**/*.gradle'
+
+    greclipse().configFile rootProject.files(
+        'gradle/spotless/spotless.eclipseformat.xml',
+        'gradle/spotless/spotless.groovyformat.prefs')
+  }
+}
+
+task tidy() {
+  description "Applies formatters and cleanups to sources (if configured)."
+  group "verification"
+
+  dependsOn tasks.matching { task -> task.name == "spotlessApply" }
+}
+
+check.dependsOn tasks.matching { task -> task.name == "spotlessCheck" }

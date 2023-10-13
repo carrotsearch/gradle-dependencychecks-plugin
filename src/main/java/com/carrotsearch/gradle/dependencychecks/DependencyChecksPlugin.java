@@ -1,9 +1,8 @@
 package com.carrotsearch.gradle.dependencychecks;
 
+import java.util.stream.Collectors;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-
-import java.util.stream.Collectors;
 
 /**
  * This plugin adds dependency-tracking functionality similar to palantir-consistent-versions, but:

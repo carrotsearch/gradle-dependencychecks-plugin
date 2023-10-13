@@ -1,13 +1,12 @@
 package com.carrotsearch.gradle.dependencychecks;
 
+import java.util.Arrays;
+import javax.inject.Inject;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.Nested;
-
-import javax.inject.Inject;
-import java.util.Arrays;
 
 public abstract class ConfigurationGroup implements Named {
   @Nested

@@ -1,22 +1,10 @@
 [versions]
 
 [libraries]
-assertj = { module = "org.assertj:assertj-core", version.strictly = "3.11.1" }
-bouncycastle = "org.bouncycastle:bcprov-jdk14:1.45"
-carrotsearch-console-formatters = "com.carrotsearch.console:formatters:1.1.2"
-carrotsearch-console-launcher = "com.carrotsearch.console:launcher:1.1.2"
-joda-time = "joda-time:joda-time:2.10.3"
-junit = "junit:junit:4.13.1"
-proguard-base = { module = "com.guardsquare:proguard-base", version.ref = "proguard" }
-proguard-gradle = { module = "com.guardsquare:proguard-gradle", version.ref = "proguard" }
-randomizedtesting-runner = "com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.8.1"
-simplexmlsafe = "com.carrotsearch.thirdparty:simple-xml-safe:2.7.1"
-slf4j-api = { module = "org.slf4j:slf4j-api", version.prefer = "2.0.3" }
+assertj = "org.assertj:assertj-core:3.22.0"
+jackson = "com.fasterxml.jackson.core:jackson-databind:2.15.2"
+junit-jupiter = "org.junit.jupiter:junit-jupiter:5.7.1"
 
 [plugins]
-benmanes-versions = "com.github.ben-manes.versions:0.47.0"
-carrotsearch-opts = "com.carrotsearch.gradle.opts:0.0.6"
-forbiddenapis = "de.thetaphi.forbiddenapis:3.5.1"
-javacc = "com.intershop.gradle.javacc:4.0.1"
-randomizedtesting-plugin = "com.carrotsearch.gradle.randomizedtesting:0.0.5"
+gradle-publish = "com.gradle.plugin-publish:1.2.1"
 spotless = "com.diffplug.spotless:6.22.0"

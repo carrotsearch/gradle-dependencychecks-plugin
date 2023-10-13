@@ -89,8 +89,9 @@ public abstract class ResolveConfigurationGroups extends DefaultTask {
                                 depInfo.because.add(
                                     "Configuration "
                                         + configuration.getName()
-                                        + " in "
-                                        + getProject().getPath());
+                                        + (getProject().getPath().equals(":")
+                                            ? ""
+                                            : " in " + getProject().getPath()));
                                 return depInfo;
                               })
                           .forEach(

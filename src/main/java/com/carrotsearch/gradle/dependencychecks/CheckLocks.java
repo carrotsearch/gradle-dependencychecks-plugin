@@ -1,23 +1,18 @@
 package com.carrotsearch.gradle.dependencychecks;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.TaskAction;
-
-import javax.inject.Inject;
 
 /** Compare aggregated dependencies against a lock file. */
 abstract class CheckLocks extends AbstractLockFileTask {
   public static final String TASK_NAME = "checkLocks";
 
   @Inject
-  public CheckLocks() {
-  }
+  public CheckLocks() {}
 
   @TaskAction
   public void action() throws IOException {
@@ -50,12 +45,16 @@ abstract class CheckLocks extends AbstractLockFileTask {
                     DependencyInfo inCurrent = current.getIfExists(groupName, dep);
 
                     if (inLockFile == null) {
-                      errors.add("  - ${dep.id()} (new dependency)");
+                      errors.add(fmt("  - %s (new dependency)", dep.id()));
                     } else if (inCurrent == null) {
-                      errors.add("  - ${dep.id()} (only in lockfile, no longer used)");
+                      errors.add(fmt("  - %s (only in lockfile, no longer used)", dep.id()));
                     } else if (!Objects.equals(inLockFile.getVersion(), inCurrent.getVersion())) {
                       errors.add(
-                          "  - ${dep.idWithoutVersion()} (version mismatch, lockfile: ${inLockFile.version}, current: ${inCurrent.version})");
+                          fmt(
+                              "  - %s (version mismatch, lockfile: %s, current: %s)",
+                              dep.idWithoutVersion(),
+                              inLockFile.getVersion(),
+                              inCurrent.getVersion()));
                     } else if (!Objects.equals(inLockFile.because, inCurrent.because)) {
                       var inLockFileBecause = new ArrayList<>(inLockFile.because);
                       var inCurrentBecause = new ArrayList<>(inCurrent.because);
@@ -64,14 +63,21 @@ abstract class CheckLocks extends AbstractLockFileTask {
                       inLockFileBecause.removeAll(shared);
                       inCurrentBecause.removeAll(shared);
 
-                      errors.add(
-                          "  - ${dep.id()} (dependency sources different)\n"
-                              + inLockFileBecause.stream()
-                                  .map(it -> "            ${it} (removed source)")
-                                  .collect(Collectors.joining("\n"))
-                              + inCurrentBecause.stream()
-                                  .map(it -> "            ${it} (new source)")
-                                  .collect(Collectors.joining("\n")));
+                      errors.add(fmt("  - %s (dependency sources different)%n", dep.id()));
+                      if (!inLockFileBecause.isEmpty()) {
+                        errors.add(
+                            inLockFileBecause.stream()
+                                    .map(it -> "        " + it + " (removed source)")
+                                    .collect(Collectors.joining("\n"))
+                                + "\n");
+                      }
+                      if (!inCurrentBecause.isEmpty()) {
+                        errors.add(
+                            inCurrentBecause.stream()
+                                    .map(it -> "        " + it + " (new source)")
+                                    .collect(Collectors.joining("\n"))
+                                + "\n");
+                      }
                     }
                   });
 
@@ -93,11 +99,17 @@ abstract class CheckLocks extends AbstractLockFileTask {
 
       buf.append("\n\nThe following steps may be helpful to resolve the problem:\n");
       buf.append(
-          "  - regenerate the lockfile using 'gradlew ${WriteLockFile.TASK_NAME}, then use git diff to inspect the changes\n");
+          fmt(
+              "  - regenerate the lockfile using 'gradlew %s', then use git diff to inspect the changes\n",
+              WriteLockFile.TASK_NAME));
       buf.append(
           "  - run 'gradlew dependencyInsight --configuration someConf --dependency someDep' to inspect dependencies");
 
       throw new GradleException(buf.toString());
     }
+  }
+
+  public static String fmt(String fmt, Object... args) {
+    return String.format(Locale.ROOT, fmt, args);
   }
 }
