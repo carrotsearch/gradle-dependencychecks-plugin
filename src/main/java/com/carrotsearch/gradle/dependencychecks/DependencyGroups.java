@@ -46,7 +46,7 @@ public class DependencyGroups implements Serializable {
     lockFile.comment = comment;
 
     // Collect unique sources.
-    LinkedHashMap<String, List<String>> keyToSource = lockFile.keyToSource;
+    TreeMap<String, List<String>> keyToSource = lockFile.keyToSource;
     LinkedHashMap<List<String>, String> sourceToKey = new LinkedHashMap<>();
     getDependencies().values().stream()
         .flatMap(it -> it.stream().map(it2 -> it2.because))
