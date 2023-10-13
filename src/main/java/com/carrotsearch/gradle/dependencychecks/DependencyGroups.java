@@ -127,7 +127,11 @@ public class DependencyGroups implements Serializable {
     }
   }
 
-  /** Merge with another dependency group. */
+  /**
+   * Merge with another dependency group.
+   *
+   * @param other the other dependency group to merge with.
+   */
   public void merge(DependencyGroups other) {
     mergeInternal(other.dependencies);
   }
