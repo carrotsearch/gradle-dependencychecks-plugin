@@ -93,7 +93,7 @@ abstract class CheckLocks extends AbstractLockFileTask {
           (groupName, errors) -> {
             buf.append("  Configuration group: " + groupName + "\n");
             for (var err : errors) {
-              buf.append("      " + err);
+              buf.append("      " + err + "\n");
             }
           });
 

@@ -52,11 +52,15 @@ abstract class AbstractIntegTest extends Specification {
   void lockFileEquals(String expected) {
     Assertions.assertThat(lockFile)
         .content()
-        .isEqualToIgnoringWhitespace(expected)
+        .isEqualToNormalizingNewlines(expected.stripIndent().trim())
   }
 
   void containsSubstring(String result, String substring) {
-    Assertions.assertThat(result)
-        .containsIgnoringWhitespaces(substring)
+    Assertions.assertThat(normalize(result))
+        .contains(normalize(substring.stripIndent()))
+  }
+
+  private static String normalize(String input) {
+    return input.trim().replaceAll("\\s*\\r?\\n", "\n")
   }
 }

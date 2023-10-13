@@ -144,7 +144,8 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           "configurationGroups" : {
             "group" : {
               "org.slf4j:slf4j-api:2.0.9" : "S000",
-              "junit:junit:4.13.2" : "S001"
+              "junit:junit:4.13.2" : "S001",
+              "org:foo:1.0.0" : "S001"
             }
           },
           "because" : {
@@ -173,6 +174,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         > Dependencies are inconsistent with the lockfile.
             Configuration group: group
                   - junit:junit:4.13.2 (only in lockfile, no longer used)
+                  - org:foo:1.0.0 (only in lockfile, no longer used)
         """)
 
     containsSubstring(result.output,
