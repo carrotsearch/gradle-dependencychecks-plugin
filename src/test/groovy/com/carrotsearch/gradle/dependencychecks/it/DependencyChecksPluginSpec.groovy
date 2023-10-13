@@ -424,4 +424,29 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     where:
     gradleVersion << CHECKED_GRADLE_VERSIONS
   }
+
+  def "should fail on --write-locks without writeLocks"() {
+    given:
+    buildFile(
+        """
+        plugins {
+          id 'com.carrotsearch.gradle.dependencychecks'
+        }
+        """)
+
+    expect:
+    def result = gradleRunner()
+        .withGradleVersion(gradleVersion)
+        .withArguments("--write-locks")
+        .forwardOutput()
+        .buildAndFail()
+
+    containsSubstring(result.output,
+        """
+        Use the ':writeLocks' task to write the lock file
+        """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
+  }
 }

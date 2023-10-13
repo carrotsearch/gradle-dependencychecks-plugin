@@ -1,6 +1,8 @@
 package com.carrotsearch.gradle.dependencychecks;
 
 import java.util.stream.Collectors;
+import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
@@ -23,6 +25,23 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
             .create(
                 DependencyVersionChecksExtension.EXTENSION_NAME,
                 DependencyVersionChecksExtension.class);
+
+    // We can't force writeLocks to run, but we can make --write-locks fail if it's not scheduled.
+    project
+        .getGradle()
+        .getTaskGraph()
+        .whenReady(
+            graph -> {
+              StartParameter startParameter = project.getGradle().getStartParameter();
+              if (startParameter.isWriteDependencyLocks()
+                  && !graph.hasTask(":" + WriteLockFile.TASK_NAME)) {
+                throw new GradleException(
+                    "Use the ':"
+                        + WriteLockFile.TASK_NAME
+                        + "' task to write the lock file, "
+                        + "'--write-locks' along is not sufficient.");
+              }
+            });
 
     // Register internal resolution tasks,
     project
