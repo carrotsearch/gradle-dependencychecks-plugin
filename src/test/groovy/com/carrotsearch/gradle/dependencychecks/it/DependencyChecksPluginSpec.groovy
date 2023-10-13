@@ -84,22 +84,22 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           "comment" : "",
           "configurationGroups" : {
             "group1" : {
-              "org.slf4j:slf4j-api:2.0.9" : "S000"
+              "org.slf4j:slf4j-api:2.0.9" : "7e02c2d3"
             },
             "group2" : {
-              "junit:junit:4.13.2" : "S001",
-              "org.hamcrest:hamcrest-core:1.3" : "S001",
-              "org.slf4j:slf4j-api:2.0.9" : "S002"
+              "junit:junit:4.13.2" : "af41d285",
+              "org.hamcrest:hamcrest-core:1.3" : "af41d285",
+              "org.slf4j:slf4j-api:2.0.9" : "f19769f3"
             }
           },
           "because" : {
-            "S000" : [
+            "7e02c2d3" : [
               "Configuration compileClasspath"
             ],
-            "S001" : [
+            "af41d285" : [
               "Configuration testCompileClasspath"
             ],
-            "S002" : [
+            "f19769f3" : [
               "Configuration compileClasspath",
               "Configuration testCompileClasspath"
             ]

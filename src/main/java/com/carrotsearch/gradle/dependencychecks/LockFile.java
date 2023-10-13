@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 @JsonPropertyOrder({"comment", "configurationGroups", "because"})
-public class LockFile {
+class LockFile {
   @JsonProperty public String comment;
 
   @JsonProperty("because")

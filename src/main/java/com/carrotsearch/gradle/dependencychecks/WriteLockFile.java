@@ -19,7 +19,7 @@ public abstract class WriteLockFile extends AbstractLockFileTask {
 
   @TaskAction
   public void action() throws IOException {
-    var mergedGroups = getMergedDependencyGroups();
+    DependencyGroups mergedGroups = getMergedDependencyGroups();
     runValidationChecks(mergedGroups);
 
     mergedGroups.writeTo(getLockFileComment().getOrElse(""), lockFile.get().getAsFile());

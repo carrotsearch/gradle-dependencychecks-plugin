@@ -55,7 +55,12 @@ public class DependencyGroups implements Serializable {
               sourceToKey.computeIfAbsent(
                   source,
                   unused -> {
-                    var key = String.format(Locale.ROOT, "S%03d", sourceToKey.size());
+                    String key = String.format(Locale.ROOT, "%08x", source.hashCode());
+                    // Add synthetic padding in case hash codes are not unique.
+                    while (keyToSource.containsKey(key)) {
+                      key = key + "P";
+                    }
+
                     keyToSource.put(key, source);
                     return key;
                   });
