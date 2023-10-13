@@ -1,6 +1,7 @@
 /* (C) 2023 */
 package com.carrotsearch.gradle.dependencychecks.it
 
+import java.util.stream.Stream
 import org.assertj.core.api.Assertions
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Specification
@@ -55,12 +56,14 @@ abstract class AbstractIntegTest extends Specification {
         .isEqualToNormalizingNewlines(expected.stripIndent().trim())
   }
 
-  void containsSubstring(String result, String substring) {
-    Assertions.assertThat(normalize(result))
-        .contains(normalize(substring.stripIndent()))
+  void containsLines(String result, String substring) {
+    if (!normalizeLines(result).contains( normalizeLines(substring.trim()))) {
+      Assertions.fail(String.format(Locale.ROOT,
+          "Expecting:%n%n%s%n%nin the following:%n%n%s", substring, result))
+    }
   }
 
-  private static String normalize(String input) {
-    return input.trim().replaceAll("\\s*\\r?\\n", "\n")
+  private static String normalizeLines(String input) {
+    return input.split().collect { line -> line.trim() }.join("\n")
   }
 }

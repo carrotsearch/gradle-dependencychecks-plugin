@@ -169,7 +169,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     result.task(":checkLocks").outcome == TaskOutcome.FAILED
 
-    containsSubstring(result.output,
+    containsLines(result.output,
         """
         > Dependencies are inconsistent with the lockfile.
             Configuration group: group
@@ -177,11 +177,11 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
                   - org:foo:1.0.0 (only in lockfile, no longer used)
         """)
 
-    containsSubstring(result.output,
+    containsLines(result.output,
         """
-          The following steps may be helpful to resolve the problem:
-            - regenerate the lockfile using 'gradlew writeLocks', then use git diff to inspect the changes
-            - run 'gradlew dependencyInsight --configuration someConf --dependency someDep' to inspect dependencies
+        The following steps may be helpful to resolve the problem:
+          - regenerate the lockfile using 'gradlew writeLocks', then use git diff to inspect the changes
+          - run 'gradlew dependencyInsight --configuration someConf --dependency someDep' to inspect dependencies
         """)
 
     where:
@@ -231,7 +231,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         .buildAndFail()
 
     result.task(":checkLocks").outcome == TaskOutcome.FAILED
-    containsSubstring(result.output, """
+    containsLines(result.output, """
             > Dependencies are inconsistent with the lockfile.
                 Configuration group: group
                       - org.slf4j:slf4j-api:2.0.9 (new dependency)
@@ -292,7 +292,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         .buildAndFail()
 
     result.task(":checkLocks").outcome == TaskOutcome.FAILED
-    containsSubstring(result.output,
+    containsLines(result.output,
         """
         > Dependencies are inconsistent with the lockfile.
             Configuration group: group
@@ -341,7 +341,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         .buildAndFail()
 
     result.task(":writeLocks").outcome == TaskOutcome.FAILED
-    containsSubstring(result.output,
+    containsLines(result.output,
         """
         > Multiple versions of the same dependency found in group 'group':
           
@@ -411,7 +411,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         .buildAndFail()
 
     result.task(":writeLocks").outcome == TaskOutcome.FAILED
-    containsSubstring(result.output,
+    containsLines(result.output,
         """
         > Multiple versions of the same dependency found in group 'group':
           
@@ -443,7 +443,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         .forwardOutput()
         .buildAndFail()
 
-    containsSubstring(result.output,
+    containsLines(result.output,
         """
         Use the ':writeLocks' task to write the lock file
         """)
