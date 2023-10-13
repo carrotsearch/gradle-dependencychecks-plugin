@@ -16,12 +16,10 @@ repositories {
 dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
 
-    testImplementation "com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.7.9"
-    testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
-    testImplementation "org.assertj:assertj-core:3.22.0"
-
-    testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
-    testImplementation "org.spockframework:spock-core"
+    testImplementation platform("com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.7.9")
+    testImplementation "com.carrotsearch.randomizedtesting:randomizedtesting-runner"
+    testImplementation "junit:junit:"
+    testImplementation "org.assertj:assertj-core"
 }
 
 gradlePlugin {
@@ -49,7 +47,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('test', Test) {
-    useJUnitPlatform()
+    useJUnit()
 }
 
 publishing {
