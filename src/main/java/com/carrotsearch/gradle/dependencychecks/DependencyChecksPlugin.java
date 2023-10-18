@@ -1,10 +1,19 @@
 package com.carrotsearch.gradle.dependencychecks;
 
+import groovy.lang.Closure;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 
 /**
  * This plugin adds dependency-tracking functionality similar to palantir-consistent-versions, but:
@@ -25,6 +34,67 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
             .create(
                 DependencyVersionChecksExtension.EXTENSION_NAME,
                 DependencyVersionChecksExtension.class);
+
+    // Add getResolvedVersion.
+    project
+        .getExtensions()
+        .getExtraProperties()
+        .set(
+            "getResolvedVersion",
+            new Closure<String>(project) {
+              public String doCall(String groupModulePair, Configuration configuration) {
+                String[] splits = groupModulePair.split(":");
+                if (splits.length != 2) {
+                  throw new GradleException(
+                      String.format(
+                          Locale.ROOT, "Expected 'group:name' notation: %s", groupModulePair));
+                }
+                return doCall(splits[0], splits[1], configuration);
+              }
+
+              public String doCall(String group, String module, Configuration configuration) {
+                List<ModuleVersionIdentifier> moduleVersionList =
+                    configuration.getIncoming().getResolutionResult().getAllComponents().stream()
+                        .map(ResolvedComponentResult::getModuleVersion)
+                        .filter(
+                            item ->
+                                Objects.equals(item.getGroup(), group)
+                                    && Objects.equals(item.getName(), module))
+                        .collect(Collectors.toList());
+
+                switch (moduleVersionList.size()) {
+                  case 0:
+                    throw new GradleException(
+                        String.format(
+                            Locale.ROOT,
+                            "Configuration %s does not contain any reference to %s:%s",
+                            configuration.getName(),
+                            group,
+                            module));
+
+                  case 1:
+                    return moduleVersionList.get(0).getVersion();
+
+                  default:
+                    throw new GradleException(
+                        String.format(
+                            Locale.ROOT,
+                            "Configuration %s contains multiple modules matching %s:%s",
+                            configuration.getName(),
+                            group,
+                            module));
+                }
+              }
+
+              public String doCall(
+                  ModuleVersionSelector moduleSelector, Configuration configuration) {
+                return doCall(moduleSelector.getModule(), configuration);
+              }
+
+              public String doCall(ModuleIdentifier moduleSelector, Configuration configuration) {
+                return doCall(moduleSelector.getGroup(), moduleSelector.getName(), configuration);
+              }
+            });
 
     // We can't force writeLocks to run, but we can make --write-locks fail if it's not scheduled.
     project

@@ -1,4 +1,3 @@
-/* (C) 2023 */
 package com.carrotsearch.gradle.dependencychecks.it
 
 import java.util.stream.Stream

@@ -152,17 +152,15 @@ spotless {
     importOrder()
 
     excludeJava()
-    greclipse().configFile rootProject.files(
+    greclipse("4.27").configFile rootProject.files(
         'gradle/spotless/spotless.eclipseformat.xml',
         'gradle/spotless/spotless.groovyformat.prefs')
-
-    licenseHeader '/* (C) $YEAR */' // or licenseHeaderFile
   }
 
   groovyGradle {
     target '*.gradle', 'gradle/**/*.gradle'
 
-    greclipse().configFile rootProject.files(
+    greclipse("4.27").configFile rootProject.files(
         'gradle/spotless/spotless.eclipseformat.xml',
         'gradle/spotless/spotless.groovyformat.prefs')
   }

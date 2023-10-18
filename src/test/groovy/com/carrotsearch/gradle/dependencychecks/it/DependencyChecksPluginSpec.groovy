@@ -1,6 +1,4 @@
-/* (C) 2023 */
 package com.carrotsearch.gradle.dependencychecks.it
-
 
 import org.gradle.testkit.runner.TaskOutcome
 

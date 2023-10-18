@@ -22,7 +22,11 @@ abstract class CheckLocks extends AbstractLockFileTask {
     var lockFileRef = lockFile.get().getAsFile();
     if (!lockFileRef.isFile()) {
       throw new GradleException(
-          "Lockfile does not exist: ${lockFileRef}, create it using the '${WriteLockFile.TASK_NAME}' task");
+          String.format(
+              Locale.ROOT,
+              "Lockfile does not exist: %s, create it using the '%s' task",
+              lockFileRef.getAbsolutePath(),
+              WriteLockFile.TASK_NAME));
     }
     DependencyGroups fromLockFile = DependencyGroups.readFrom(lockFileRef);
     runValidationChecks(fromLockFile);
