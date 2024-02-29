@@ -7,7 +7,7 @@ plugins {
 
 def humanName = 'dependencychecks-plugin'
 project.group = 'com.carrotsearch.gradle.dependencychecks'
-project.version = '0.0.6-SNAPSHOT'
+project.version = '0.0.6'
 project.description = 'Dependency checker and lock file aggregator'
 
 repositories {
