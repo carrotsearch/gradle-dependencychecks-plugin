@@ -39,6 +39,10 @@ class DependencyInfo implements Serializable {
           configuration,
           projectPath.equals(":") ? "root project" : projectPath);
     }
+
+    public String projectTask(String taskName) {
+      return (projectPath.equals(":") ? "" : projectPath) + ":" + taskName;
+    }
   }
 
   /** One or more "sources" of this dependency. Typically, project path and configuration name. */

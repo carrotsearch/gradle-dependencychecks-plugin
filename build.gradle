@@ -144,7 +144,7 @@ spotless {
   java {
     lineEndings 'UNIX'
     endWithNewline()
-    googleJavaFormat('1.18.1')
+    googleJavaFormat('1.20.0')
   }
 
   groovy {

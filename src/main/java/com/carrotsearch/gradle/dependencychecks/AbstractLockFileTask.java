@@ -58,8 +58,10 @@ abstract class AbstractLockFileTask extends DefaultTask {
                         groupName));
 
                 for (int index = 0; index < inconsistentGroups.size(); index++) {
-                  var list = inconsistentGroups.get(index);
-                  buf.append(fmt("  %s) %s%n", index + 1, list.get(0).idWithoutVersion()));
+                  List<DependencyInfo> list = inconsistentGroups.get(index);
+                  String artifactCoords = list.get(0).idWithoutVersion();
+
+                  buf.append(fmt("  %s) %s%n", index + 1, artifactCoords));
                   for (var dep : list) {
                     buf.append(
                         fmt(
@@ -70,6 +72,21 @@ abstract class AbstractLockFileTask extends DefaultTask {
                                 .collect(Collectors.joining("\n"))));
                     buf.append("\n");
                   }
+
+                  buf.append(fmt("     more insight into these dependencies:%n"));
+
+                  for (var dep : list) {
+                    dep.sources.forEach(
+                        v -> {
+                          buf.append(
+                              fmt(
+                                  "       gradlew %s --dependency \"%s\" --configuration \"%s\"%n",
+                                  v.projectTask("dependencyInsight"),
+                                  artifactCoords,
+                                  v.configuration()));
+                        });
+                  }
+                  buf.append("\n");
                 }
 
                 throw new GradleException(buf.toString());

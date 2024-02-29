@@ -378,7 +378,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
-  def "should collect dependencies from subprojects"() {
+  def "should display version conflicts in subprojects"() {
     given:
 
     settingsFile(
@@ -415,12 +415,14 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         configure(project(":subproject-a")) {
             dependencies {
               api "org.slf4j:slf4j-api:2.0.9"
+              api "org.apache.lucene:lucene-core:9.10.0"
             }
         }
 
         configure(project(":subproject-b")) {
             dependencies {
               runtimeOnly "org.slf4j:slf4j-api:2.0.8"
+              api "org.apache.lucene:lucene-core:9.9.0"
             }
         }
         """)
@@ -437,12 +439,29 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         """
         > Multiple versions of the same dependency found in group 'group':
           
-            1) org.slf4j:slf4j-api
+            1) org.apache.lucene:lucene-core
+                 - version 9.10.0 used by:
+                     Configuration compileClasspath in :subproject-a
+                     Configuration runtimeClasspath in :subproject-a
+                 - version 9.9.0 used by:
+                     Configuration compileClasspath in :subproject-b
+                     Configuration runtimeClasspath in :subproject-b
+               more insight into these dependencies:
+                 gradlew :subproject-a:dependencyInsight --dependency "org.apache.lucene:lucene-core" --configuration "compileClasspath"
+                 gradlew :subproject-a:dependencyInsight --dependency "org.apache.lucene:lucene-core" --configuration "runtimeClasspath"
+                 gradlew :subproject-b:dependencyInsight --dependency "org.apache.lucene:lucene-core" --configuration "compileClasspath"
+                 gradlew :subproject-b:dependencyInsight --dependency "org.apache.lucene:lucene-core" --configuration "runtimeClasspath"
+          
+            2) org.slf4j:slf4j-api
                  - version 2.0.8 used by:
                      Configuration runtimeClasspath in :subproject-b
                  - version 2.0.9 used by:
                      Configuration compileClasspath in :subproject-a
                      Configuration runtimeClasspath in :subproject-a
+               more insight into these dependencies:
+                 gradlew :subproject-b:dependencyInsight --dependency "org.slf4j:slf4j-api" --configuration "runtimeClasspath"
+                 gradlew :subproject-a:dependencyInsight --dependency "org.slf4j:slf4j-api" --configuration "compileClasspath"
+                 gradlew :subproject-a:dependencyInsight --dependency "org.slf4j:slf4j-api" --configuration "runtimeClasspath"
         """)
 
     where:
