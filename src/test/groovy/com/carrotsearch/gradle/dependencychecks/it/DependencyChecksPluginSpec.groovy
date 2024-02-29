@@ -71,7 +71,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     when:
     def result = gradleRunner()
         .withGradleVersion(gradleVersion)
-        .withArguments(":writeLocks", ":checkLocks")
+        .withArguments(":writeLocks", ":checkLocks", "--stacktrace")
         .build()
 
     then:
@@ -82,24 +82,36 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           "comment" : "",
           "configurationGroups" : {
             "group1" : {
-              "org.slf4j:slf4j-api:2.0.9" : "7e02c2d3"
+              "org.slf4j:slf4j-api:2.0.9" : "4ab9f4ef,refs=1"
             },
             "group2" : {
-              "junit:junit:4.13.2" : "af41d285",
-              "org.hamcrest:hamcrest-core:1.3" : "af41d285",
-              "org.slf4j:slf4j-api:2.0.9" : "f19769f3"
+              "junit:junit:4.13.2" : "c34b667d,refs=1",
+              "org.hamcrest:hamcrest-core:1.3" : "c34b667d,refs=1",
+              "org.slf4j:slf4j-api:2.0.9" : "cfd00f4f,refs=2"
             }
           },
           "because" : {
-            "7e02c2d3" : [
-              "Configuration compileClasspath"
+            "4ab9f4ef" : [
+              {
+                "configuration" : "compileClasspath",
+                "projectPath" : ":"
+              }
             ],
-            "af41d285" : [
-              "Configuration testCompileClasspath"
+            "c34b667d" : [
+              {
+                "configuration" : "testCompileClasspath",
+                "projectPath" : ":"
+              }
             ],
-            "f19769f3" : [
-              "Configuration compileClasspath",
-              "Configuration testCompileClasspath"
+            "cfd00f4f" : [
+              {
+                "configuration" : "compileClasspath",
+                "projectPath" : ":"
+              },
+              {
+                "configuration" : "testCompileClasspath",
+                "projectPath" : ":"
+              }
             ]
           }
         }
@@ -141,18 +153,27 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           "comment" : "",
           "configurationGroups" : {
             "group" : {
-              "org.slf4j:slf4j-api:2.0.9" : "S000",
-              "junit:junit:4.13.2" : "S001",
-              "org:foo:1.0.0" : "S001"
+              "org.slf4j:slf4j-api:2.0.9" : "S000,ref=1",
+              "junit:junit:4.13.2" : "S001,ref=2",
+              "org:foo:1.0.0" : "S001,ref=2"
             }
           },
           "because" : {
             "S000" : [
-              "Configuration compileClasspath"
+              {
+                "configuration" : "compileClasspath",
+                "projectPath" : ":"
+              }
             ],
             "S001" : [
-              "Configuration compileClasspath",
-              "Configuration testCompileClasspath"
+              {
+                "configuration" : "compileClasspath",
+                "projectPath" : ":"
+              },
+              {
+                "configuration" : "testCompileClasspath",
+                "projectPath" : ":"
+              }
             ]
           }
         }
@@ -161,7 +182,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     expect:
     def result = gradleRunner()
         .withGradleVersion(gradleVersion)
-        .withArguments(":checkLocks")
+        .withArguments(":checkLocks", "--stacktrace")
         .forwardOutput()
         .buildAndFail()
 
@@ -271,12 +292,15 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           "comment" : "",
           "configurationGroups" : {
             "group" : {
-              "org.slf4j:slf4j-api:2.0.9" : "S000"
+              "org.slf4j:slf4j-api:2.0.9" : "S000,refs=1"
             }
           },
           "because" : {
             "S000" : [
-              "Configuration runtimeClasspath"
+              {
+                "configuration" : "runtimeClasspath",
+                "projectPath" : ":"
+              }
             ]
           }
         }
@@ -295,8 +319,8 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         > Dependencies are inconsistent with the lockfile.
             Configuration group: group
                   - org.slf4j:slf4j-api:2.0.9 (dependency sources different)
-                        Configuration runtimeClasspath (removed source)
-                        Configuration compileClasspath (new source)
+                        Configuration runtimeClasspath in root project (removed source)
+                        Configuration compileClasspath in root project (new source)
         """)
 
     where:
@@ -345,9 +369,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           
             1) org.slf4j:slf4j-api
                  - version 2.0.8 used by:
-                     Configuration runtimeClasspath       
+                     Configuration runtimeClasspath in root project
                  - version 2.0.9 used by:
-                     Configuration compileClasspath
+                     Configuration compileClasspath in root project
         """)
 
     where:

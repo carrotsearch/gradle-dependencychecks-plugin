@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.gradle.api.GradleException;
 
 /** An ordered set of named groups of {@link DependencyInfo}s. */
 public class DependencyGroups implements Serializable {
@@ -46,10 +48,11 @@ public class DependencyGroups implements Serializable {
     lockFile.comment = comment;
 
     // Collect unique sources.
-    TreeMap<String, List<String>> keyToSource = lockFile.keyToSource;
-    LinkedHashMap<List<String>, String> sourceToKey = new LinkedHashMap<>();
+    TreeMap<String, List<DependencyInfo.DependencySource>> keyToSource = lockFile.keyToSource;
+    LinkedHashMap<List<DependencyInfo.DependencySource>, String> sourceToKey =
+        new LinkedHashMap<>();
     getDependencies().values().stream()
-        .flatMap(it -> it.stream().map(it2 -> it2.because))
+        .flatMap(it -> it.stream().map(it2 -> it2.sources))
         .forEach(
             source -> {
               sourceToKey.computeIfAbsent(
@@ -76,7 +79,7 @@ public class DependencyGroups implements Serializable {
                       .collect(
                           Collectors.toMap(
                               DependencyInfo::getDependency,
-                              (e -> sourceToKey.get(e.because)),
+                              (e -> sourceToKey.get(e.sources) + ",refs=" + e.sources.size()),
                               ((a, b) -> {
                                 throw new RuntimeException();
                               }),
@@ -89,15 +92,22 @@ public class DependencyGroups implements Serializable {
   }
 
   public static DependencyGroups readFrom(File file) throws IOException {
-    LockFile lockFile = objectMapper.readValue(file, LockFile.class);
+    LockFile lockFile;
+    try {
+      lockFile = objectMapper.readValue(file, LockFile.class);
+    } catch (MismatchedInputException e) {
+      throw new GradleException(
+          "Existing lock file cannot be read, recreate it using writeLocks: " + file);
+    }
 
     var depGroups = new DependencyGroups();
     lockFile.configurationGroups.forEach(
         (name, depList) -> {
           depList.forEach(
               (dependency, source) -> {
+                String sourceKey = source.substring(0, source.indexOf(","));
                 depGroups.addOrMerge(
-                    name, new DependencyInfo(dependency, lockFile.keyToSource.get(source)));
+                    name, new DependencyInfo(dependency, lockFile.keyToSource.get(sourceKey)));
               });
         });
 
@@ -114,11 +124,11 @@ public class DependencyGroups implements Serializable {
     var lookupKey = groupName + " -> " + dependencyInfo.id();
     var owned = dependencyByGroupAndId.get(lookupKey);
     if (owned != null) {
-      owned.because.addAll(dependencyInfo.because);
+      owned.sources.addAll(dependencyInfo.sources);
     } else {
       owned =
           new DependencyInfo(
-              dependencyInfo.getDependency(), new ArrayList<>(dependencyInfo.because));
+              dependencyInfo.getDependency(), new ArrayList<>(dependencyInfo.sources));
       dependencyByGroupAndId.put(lookupKey, owned);
       dependencies
           .computeIfAbsent(

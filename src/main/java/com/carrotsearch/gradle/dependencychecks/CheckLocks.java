@@ -59,9 +59,9 @@ abstract class CheckLocks extends AbstractLockFileTask {
                               dep.idWithoutVersion(),
                               inLockFile.getVersion(),
                               inCurrent.getVersion()));
-                    } else if (!Objects.equals(inLockFile.because, inCurrent.because)) {
-                      var inLockFileBecause = new ArrayList<>(inLockFile.because);
-                      var inCurrentBecause = new ArrayList<>(inCurrent.because);
+                    } else if (!Objects.equals(inLockFile.sources, inCurrent.sources)) {
+                      var inLockFileBecause = new ArrayList<>(inLockFile.sources);
+                      var inCurrentBecause = new ArrayList<>(inCurrent.sources);
                       var shared = new ArrayList<>(inLockFileBecause);
                       shared.retainAll(inCurrentBecause);
                       inLockFileBecause.removeAll(shared);

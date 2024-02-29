@@ -11,7 +11,7 @@ class LockFile {
   @JsonProperty public String comment;
 
   @JsonProperty("because")
-  public TreeMap<String, List<String>> keyToSource = new TreeMap<>();
+  public TreeMap<String, List<DependencyInfo.DependencySource>> keyToSource = new TreeMap<>();
 
   @JsonProperty("configurationGroups")
   public LinkedHashMap<String, LinkedHashMap<String, String>> configurationGroups =

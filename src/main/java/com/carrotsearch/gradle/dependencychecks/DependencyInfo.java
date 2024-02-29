@@ -1,9 +1,14 @@
 package com.carrotsearch.gradle.dependencychecks;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 /**
@@ -18,21 +23,40 @@ class DependencyInfo implements Serializable {
   private String module;
   private String version;
 
+  record DependencySource(@JsonProperty String configuration, @JsonProperty String projectPath) {
+    @JsonCreator
+    public DependencySource {}
+
+    public DependencySource(Configuration configuration, Project project) {
+      this(configuration.getName(), project.getPath());
+    }
+
+    @Override
+    public String toString() {
+      return String.format(
+          Locale.ROOT,
+          "Configuration %s in %s",
+          configuration,
+          projectPath.equals(":") ? "root project" : projectPath);
+    }
+  }
+
   /** One or more "sources" of this dependency. Typically, project path and configuration name. */
-  List<String> because = new ArrayList<>();
+  final List<DependencySource> sources;
 
   DependencyInfo(ModuleComponentIdentifier id) {
     this.group = id.getGroup();
     this.module = id.getModule();
     this.version = id.getVersion();
+    this.sources = new ArrayList<>();
   }
 
-  DependencyInfo(String dependency, List<String> because) {
+  DependencyInfo(String dependency, List<DependencySource> sources) {
     String[] coords = dependency.split(":");
     this.group = coords[0];
     this.module = coords[1];
     this.version = coords[2];
-    this.because = because;
+    this.sources = new ArrayList<>(sources);
   }
 
   String idWithoutVersion() {

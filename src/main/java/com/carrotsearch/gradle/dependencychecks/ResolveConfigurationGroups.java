@@ -86,12 +86,9 @@ public abstract class ResolveConfigurationGroups extends DefaultTask {
                               res -> {
                                 DependencyInfo depInfo =
                                     new DependencyInfo((ModuleComponentIdentifier) res.getId());
-                                depInfo.because.add(
-                                    "Configuration "
-                                        + configuration.getName()
-                                        + (getProject().getPath().equals(":")
-                                            ? ""
-                                            : " in " + getProject().getPath()));
+                                depInfo.sources.add(
+                                    new DependencyInfo.DependencySource(
+                                        configuration, getProject()));
                                 return depInfo;
                               })
                           .forEach(

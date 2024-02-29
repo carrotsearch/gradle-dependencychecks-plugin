@@ -48,7 +48,7 @@ abstract class AbstractLockFileTask extends DefaultTask {
                       .values()
                       .stream()
                       .filter(list -> list.size() > 1)
-                      .collect(Collectors.toList());
+                      .toList();
 
               if (!inconsistentGroups.isEmpty()) {
                 StringBuilder buf = new StringBuilder();
@@ -65,7 +65,7 @@ abstract class AbstractLockFileTask extends DefaultTask {
                         fmt(
                             "       - version %s used by:%n%s",
                             dep.getVersion(),
-                            dep.because.stream()
+                            dep.sources.stream()
                                 .map(v -> "           " + v)
                                 .collect(Collectors.joining("\n"))));
                     buf.append("\n");
