@@ -78,4 +78,9 @@ class DependencyInfo implements Serializable {
   String getDependency() {
     return group + ":" + module + ":" + version;
   }
+
+  @Override
+  public String toString() {
+    return getDependency();
+  }
 }

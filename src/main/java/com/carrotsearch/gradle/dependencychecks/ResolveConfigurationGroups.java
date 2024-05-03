@@ -79,22 +79,31 @@ public abstract class ResolveConfigurationGroups extends DefaultTask {
           configurationGroup
               .getIncludedConfigurations()
               .forEach(
-                  configuration ->
-                      configuration.getIncoming().getResolutionResult().getAllComponents().stream()
-                          .filter(res -> res.getId() instanceof ModuleComponentIdentifier)
-                          .map(
-                              res -> {
-                                DependencyInfo depInfo =
-                                    new DependencyInfo((ModuleComponentIdentifier) res.getId());
-                                depInfo.sources.add(
-                                    new DependencyInfo.DependencySource(
-                                        configuration, getProject()));
-                                return depInfo;
-                              })
-                          .forEach(
-                              depInfo -> {
-                                groups.addOrMerge(configurationGroup.getName(), depInfo);
-                              }));
+                  configuration -> {
+                    getLogger().debug("Resolving configuration group {}", configuration.getName());
+                    configuration.getIncoming().getResolutionResult().getAllComponents().stream()
+                        .peek(
+                            res ->
+                                getLogger()
+                                    .debug(
+                                        "  Component: {}, ModuleComponentIdentifier?: {}",
+                                        res.getId(),
+                                        res.getId() instanceof ModuleComponentIdentifier))
+                        .filter(res -> res.getId() instanceof ModuleComponentIdentifier)
+                        .map(
+                            res -> {
+                              DependencyInfo depInfo =
+                                  new DependencyInfo((ModuleComponentIdentifier) res.getId());
+                              depInfo.sources.add(
+                                  new DependencyInfo.DependencySource(configuration, getProject()));
+                              return depInfo;
+                            })
+                        .forEach(
+                            depInfo -> {
+                              getLogger().lifecycle("  Adding: {}", depInfo.toString());
+                              groups.addOrMerge(configurationGroup.getName(), depInfo);
+                            });
+                  });
         });
     return groups;
   }
