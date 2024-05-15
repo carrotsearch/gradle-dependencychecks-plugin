@@ -1,7 +1,9 @@
 package com.carrotsearch.gradle.dependencychecks;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
@@ -10,7 +12,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -34,41 +38,40 @@ public abstract class ResolveConfigurationGroups extends DefaultTask {
                                 .file(getTemporaryDir() + "/resolved-configuration-groups.json");
                           })));
 
+  @Input
+  abstract Property<String> getResolvedConfiguration();
+
   @OutputFile
   public RegularFileProperty getOutput() {
     return output;
   }
 
   public ResolveConfigurationGroups() {
-    var confProvider =
+    getResolvedConfiguration()
+        .set(
+            getProvider(
+                () -> {
+                  try (var sw = new StringWriter()) {
+                    computeDependencyGroups(getConfigurationGroups())
+                        .writeTo("Internal resolved lock file, do not edit.", sw);
+                    return sw.toString();
+                  }
+                }));
+
+    dependsOn(
         getProvider(
             () -> {
               return getConfigurationGroups().stream()
-                  .map(
-                      it -> {
-                        return it.getIncludedConfigurations();
-                      })
+                  .flatMap(it -> it.getIncludedConfigurations().stream())
                   .collect(Collectors.toList());
-            });
-
-    getInputs().files(confProvider);
-    getInputs()
-        .property(
-            "configuration-group-names",
-            getProvider(
-                () -> {
-                  return getConfigurationGroups().getNames();
-                }));
-
-    dependsOn(confProvider);
+            }));
   }
 
   @TaskAction
   void action() throws IOException {
-    File depsFile = output.get().getAsFile();
-    depsFile.getParentFile().mkdirs();
-    computeDependencyGroups(getConfigurationGroups())
-        .writeTo("Internal resolved lock file, do not edit.", depsFile);
+    Path depsFile = output.get().getAsFile().toPath();
+    Files.createDirectories(depsFile.getParent());
+    Files.writeString(depsFile, getResolvedConfiguration().get());
   }
 
   private DependencyGroups computeDependencyGroups(

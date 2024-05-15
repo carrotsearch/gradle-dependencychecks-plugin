@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +46,12 @@ public class DependencyGroups implements Serializable {
   }
 
   public void writeTo(String comment, File file) throws IOException {
+    try (var writer = Files.newBufferedWriter(file.toPath())) {
+      writeTo(comment, writer);
+    }
+  }
+
+  public void writeTo(String comment, Writer writer) throws IOException {
     LockFile lockFile = new LockFile();
     lockFile.comment = comment;
 
@@ -88,7 +96,7 @@ public class DependencyGroups implements Serializable {
               configurationGroups.put(name, value);
             });
 
-    objectMapper.writeValue(file, lockFile);
+    objectMapper.writeValue(writer, lockFile);
   }
 
   public static DependencyGroups readFrom(File file) throws IOException {
