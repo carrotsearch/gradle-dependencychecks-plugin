@@ -1,6 +1,7 @@
 package com.carrotsearch.gradle.dependencychecks.it
 
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.StringAssert
 
 class GetResolvedVersionSpec extends AbstractIntegTest {
   def "Should resolve dependency version using explicit coordinates"() {
@@ -38,7 +39,7 @@ class GetResolvedVersionSpec extends AbstractIntegTest {
         .build()
 
     then:
-    Assertions.assertThat(result.output).contains("Hamcrest: 1.3")
+    Assertions.assertThat(result.output).containsSequence("Hamcrest: 1.3")
 
     where:
     gradleVersion << CHECKED_GRADLE_VERSIONS

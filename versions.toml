@@ -1,7 +1,7 @@
 [versions]
 
 [libraries]
-assertj = "org.assertj:assertj-core:3.25.3"
+assertj = "org.assertj:assertj-core:3.22.0"
 jackson = "com.fasterxml.jackson.core:jackson-databind:2.17.1"
 junit-jupiter = "org.junit.jupiter:junit-jupiter:5.10.2"
 
