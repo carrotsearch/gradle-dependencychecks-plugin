@@ -90,8 +90,7 @@ public abstract class ResolveConfigurationGroups extends DefaultTask {
                                 DependencyInfo depInfo =
                                     new DependencyInfo((ModuleComponentIdentifier) res.getId());
                                 depInfo.sources.add(
-                                    new DependencyInfo.DependencySource(
-                                        configuration, getProject()));
+                                    new DependencySource(configuration, getProject()));
                                 return depInfo;
                               })
                           .forEach(
