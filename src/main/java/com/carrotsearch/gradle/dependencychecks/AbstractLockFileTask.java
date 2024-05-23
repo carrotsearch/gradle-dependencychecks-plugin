@@ -48,7 +48,7 @@ abstract class AbstractLockFileTask extends DefaultTask {
                       .values()
                       .stream()
                       .filter(list -> list.size() > 1)
-                      .toList();
+                      .collect(Collectors.toList());
 
               if (!inconsistentGroups.isEmpty()) {
                 StringBuilder buf = new StringBuilder();

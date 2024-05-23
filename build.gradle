@@ -152,7 +152,7 @@ spotless {
     importOrder()
 
     excludeJava()
-    greclipse("4.27").configFile rootProject.files(
+    greclipse("4.26").configFile rootProject.files(
         'gradle/spotless/spotless.eclipseformat.xml',
         'gradle/spotless/spotless.groovyformat.prefs')
   }
@@ -160,7 +160,7 @@ spotless {
   groovyGradle {
     target '*.gradle', 'gradle/**/*.gradle'
 
-    greclipse("4.27").configFile rootProject.files(
+    greclipse("4.26").configFile rootProject.files(
         'gradle/spotless/spotless.eclipseformat.xml',
         'gradle/spotless/spotless.groovyformat.prefs')
   }
