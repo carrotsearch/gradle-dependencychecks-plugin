@@ -1,11 +1,11 @@
 package com.carrotsearch.gradle.dependencychecks;
 
 import groovy.lang.Closure;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -14,6 +14,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 
 /**
  * This plugin adds dependency-tracking functionality similar to palantir-consistent-versions, but:
@@ -96,23 +97,6 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
               }
             });
 
-    // We can't force writeLocks to run, but we can make --write-locks fail if it's not scheduled.
-    project
-        .getGradle()
-        .getTaskGraph()
-        .whenReady(
-            graph -> {
-              StartParameter startParameter = project.getGradle().getStartParameter();
-              if (startParameter.isWriteDependencyLocks()
-                  && !graph.hasTask(":" + WriteLockFile.TASK_NAME)) {
-                throw new GradleException(
-                    "Use the ':"
-                        + WriteLockFile.TASK_NAME
-                        + "' task to write the lock file, "
-                        + "'--write-locks' along is not sufficient.");
-              }
-            });
-
     // Register internal resolution tasks,
     project
         .getTasks()
@@ -159,6 +143,20 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
           .getTasks()
           .matching(it -> it.getName().equals("check"))
           .configureEach(it -> it.dependsOn(checkLocksTask));
+
+      // To support "--write-locks", we check if it is provided and add the writeLocks task
+      // to the task execution list manually
+      var startParams = project.getGradle().getStartParameter();
+      if (startParams.isWriteDependencyLocks()
+          && !startParams.getTaskNames().contains(WriteLockFile.TASK_NAME)) {
+        var requests = startParams.getTaskRequests();
+        var args = new ArrayList<String>();
+        args.add(WriteLockFile.TASK_NAME);
+        var request =
+            new DefaultTaskExecutionRequest(args, project.getPath(), project.getRootDir());
+        requests.add(request);
+        startParams.setTaskRequests(requests);
+      }
     }
   }
 }
