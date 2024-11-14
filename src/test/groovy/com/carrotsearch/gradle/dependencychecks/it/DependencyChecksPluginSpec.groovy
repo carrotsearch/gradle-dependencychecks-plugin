@@ -20,7 +20,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     when:
     def result = gradleRunner()
         .withGradleVersion(gradleVersion)
-        .withArguments(":writeLocks")
+        .withArguments("--write-locks")
         .run()
 
     then:
@@ -358,7 +358,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     expect:
     def result = gradleRunner()
         .withGradleVersion(gradleVersion)
-        .withArguments(":writeLocks")
+        .withArguments("--write-locks")
         .forwardOutput()
         .buildAndFail()
 
@@ -430,7 +430,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     expect:
     def result = gradleRunner()
         .withGradleVersion(gradleVersion)
-        .withArguments(":writeLocks")
+        .withArguments("--write-locks")
         .forwardOutput()
         .buildAndFail()
 
@@ -468,7 +468,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
     gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
-  def "should fail on --write-locks without writeLocks"() {
+  def "should succeed on --write-locks without writeLocks"() {
     given:
     buildFile(
         """
@@ -482,12 +482,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
         .withGradleVersion(gradleVersion)
         .withArguments("--write-locks")
         .forwardOutput()
-        .buildAndFail()
+        .run()
 
-    containsLines(result.output,
-        """
-        Use the ':writeLocks' task to write the lock file
-        """)
+    result.task(":writeLocks").outcome == TaskOutcome.SUCCESS
 
     where:
     gradleVersion << CHECKED_GRADLE_VERSIONS

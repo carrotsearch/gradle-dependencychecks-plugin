@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -96,23 +95,6 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
               }
             });
 
-    // We can't force writeLocks to run, but we can make --write-locks fail if it's not scheduled.
-    project
-        .getGradle()
-        .getTaskGraph()
-        .whenReady(
-            graph -> {
-              StartParameter startParameter = project.getGradle().getStartParameter();
-              if (startParameter.isWriteDependencyLocks()
-                  && !graph.hasTask(":" + WriteLockFile.TASK_NAME)) {
-                throw new GradleException(
-                    "Use the ':"
-                        + WriteLockFile.TASK_NAME
-                        + "' task to write the lock file, "
-                        + "'--write-locks' along is not sufficient.");
-              }
-            });
-
     // Register internal resolution tasks,
     project
         .getTasks()
@@ -142,10 +124,20 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
           project.getTasks().register(WriteLockFile.TASK_NAME, WriteLockFile.class);
       writeLocksTask.configure(
           (task) -> {
+            // Run this task only if --write-locks or :writeLocks is provided
+            task.onlyIf(
+                (t) ->
+                    project.getGradle().getStartParameter().isWriteDependencyLocks()
+                        || !project.getTasks().matching((it) -> it == task).isEmpty());
+
             task.getLockFileComment().convention(depCheckExt.getLockFileComment());
             task.getResolvedConfigurationGroups().from(resolutionTasks);
             task.lockFile.value(project.getLayout().getProjectDirectory().file("versions.lock"));
           });
+
+      // Add writeLocks task to default tasks to make it available when no task names provided.
+      // This allows execution of `gradlew --write-locks`
+      project.defaultTasks(WriteLockFile.TASK_NAME);
 
       var checkLocksTask = project.getTasks().register(CheckLocks.TASK_NAME, CheckLocks.class);
       checkLocksTask.configure(
