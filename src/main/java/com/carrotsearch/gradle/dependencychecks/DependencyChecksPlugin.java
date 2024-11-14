@@ -1,6 +1,7 @@
 package com.carrotsearch.gradle.dependencychecks;
 
 import groovy.lang.Closure;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -13,6 +14,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.internal.DefaultTaskExecutionRequest;
 
 /**
  * This plugin adds dependency-tracking functionality similar to palantir-consistent-versions, but:
@@ -124,20 +126,10 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
           project.getTasks().register(WriteLockFile.TASK_NAME, WriteLockFile.class);
       writeLocksTask.configure(
           (task) -> {
-            // Run this task only if --write-locks or :writeLocks is provided
-            task.onlyIf(
-                (t) ->
-                    project.getGradle().getStartParameter().isWriteDependencyLocks()
-                        || !project.getTasks().matching((it) -> it == task).isEmpty());
-
             task.getLockFileComment().convention(depCheckExt.getLockFileComment());
             task.getResolvedConfigurationGroups().from(resolutionTasks);
             task.lockFile.value(project.getLayout().getProjectDirectory().file("versions.lock"));
           });
-
-      // Add writeLocks task to default tasks to make it available when no task names provided.
-      // This allows execution of `gradlew --write-locks`
-      project.defaultTasks(WriteLockFile.TASK_NAME);
 
       var checkLocksTask = project.getTasks().register(CheckLocks.TASK_NAME, CheckLocks.class);
       checkLocksTask.configure(
@@ -151,6 +143,20 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
           .getTasks()
           .matching(it -> it.getName().equals("check"))
           .configureEach(it -> it.dependsOn(checkLocksTask));
+
+      // To support "--write-locks", we check if it is provided and add the writeLocks task
+      // to the task execution list manually
+      var startParams = project.getGradle().getStartParameter();
+      if (startParams.isWriteDependencyLocks()
+          && !startParams.getTaskNames().contains(WriteLockFile.TASK_NAME)) {
+        var requests = startParams.getTaskRequests();
+        var args = new ArrayList<String>();
+        args.add(WriteLockFile.TASK_NAME);
+        var request =
+            new DefaultTaskExecutionRequest(args, project.getPath(), project.getRootDir());
+        requests.add(request);
+        startParams.setTaskRequests(requests);
+      }
     }
   }
 }
