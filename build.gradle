@@ -81,14 +81,14 @@ publishing {
 
     maven {
       name = 'sonatype'
-      url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
+      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2"
 
       credentials {
         if (project.hasProperty('nexusUsername')) {
-          username project.nexusUsername
+          username = project.nexusUsername
         }
         if (project.hasProperty('nexusPassword')) {
-          password project.nexusPassword
+          password = project.nexusPassword
         }
       }
     }
@@ -135,7 +135,7 @@ publishing {
 
 spotless {
   java {
-    lineEndings 'UNIX'
+    lineEndings = 'UNIX'
     endWithNewline()
     googleJavaFormat('1.20.0')
   }
@@ -160,8 +160,8 @@ spotless {
 }
 
 task tidy() {
-  description "Applies formatters and cleanups to sources (if configured)."
-  group "verification"
+  description = "Applies formatters and cleanups to sources (if configured)."
+  group = "verification"
 
   dependsOn tasks.matching { task -> task.name == "spotlessApply" }
 }
