@@ -1,5 +1,5 @@
 [versions]
-projectVersion = "0.1.0-SNAPSHOT"
+projectVersion = "0.1.0"
 minJava = "17"
 
 [libraries]
