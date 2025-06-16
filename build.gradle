@@ -1,51 +1,48 @@
 plugins {
-  alias(deps.plugins.gradle.publish)
-  alias(deps.plugins.spotless)
+  alias(libs.plugins.gradle.publish)
+  alias(libs.plugins.spotless)
   id 'groovy'
   id 'signing'
 }
 
 def humanName = 'dependencychecks-plugin'
 project.group = 'com.carrotsearch.gradle.dependencychecks'
-project.version = '0.0.10-SNAPSHOT'
+project.version = libs.versions.projectVersion.get()
 project.description = 'Dependency checker and lock file aggregator'
+
+project.ext.websiteAddress = "https://github.com/carrotsearch/gradle-dependencychecks-plugin"
+project.ext.vcsAddress = "https://github.com/carrotsearch/gradle-dependencychecks-plugin.git"
 
 repositories {
   mavenCentral()
 }
 
-dependencies {
-  implementation deps.jackson
-
-  testImplementation deps.junit.jupiter
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-  testImplementation deps.assertj
-
-  testImplementation platform("org.spockframework:spock-bom:2.3-groovy-3.0")
-  testImplementation "org.spockframework:spock-core"
-}
-
-allprojects {
-  apply plugin: 'idea'
-
-  idea {
-    module {
-      outputDir file('build/idea/classes/main')
-      testOutputDir file('build/idea/classes/test')
-      downloadSources = true
-    }
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(libs.versions.minJava.get())
   }
 }
 
+dependencies {
+  implementation libs.jackson
+
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+  testImplementation libs.assertj
+
+  testImplementation platform(libs.spockframework.get())
+  testImplementation "org.spockframework:spock-core"
+}
+
 gradlePlugin {
-  website = 'https://github.com/carrotsearch/gradle-dependencychecks-plugin'
-  vcsUrl = 'https://github.com/carrotsearch/gradle-dependencychecks-plugin.git'
+  website = project.ext.websiteAddress
+  vcsUrl = project.ext.websiteAddress + ".git"
   plugins {
     dependencychecks {
       id = project.group
-      implementationClass = 'com.carrotsearch.gradle.dependencychecks.DependencyChecksPlugin'
-      displayName = humanName
+      implementationClass = 'com.carrotsearch.gradle.buildinfra.dependencychecks.DependencyChecksPlugin'
+      displayName = project.description
       description = project.description
       tags = [
         'utility'
@@ -54,18 +51,25 @@ gradlePlugin {
   }
 }
 
-java {
-  sourceCompatibility = 11
-  targetCompatibility = 11
+tasks.withType(Javadoc).configureEach {
+  it.options.addBooleanOption("Xdoclint:none", true)
 }
 
-tasks.withType(JavaCompile).configureEach {
-  options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-  options.encoding = "UTF-8"
-}
+tasks.register("sourcesJar", Jar, {
+  dependsOn classes
+  archiveClassifier = 'sources'
+  from sourceSets.main.allJava
+})
 
-tasks.named('test', Test) {
+tasks.register("javadocJar", Jar, {
+  dependsOn javadoc
+  archiveClassifier = 'javadoc'
+  from javadoc.destinationDir
+})
+
+tasks.withType(Test).configureEach {
   useJUnitPlatform()
+  systemProperty("tests.gradle.version", gradle.gradleVersion)
 }
 
 publishing {
@@ -95,14 +99,14 @@ publishing {
       pom {
         inceptionYear = "2023"
 
-        name = humanName
+        name = project.name
         description = project.description
-        url = gradlePlugin.website
+        url = websiteAddress
 
         licenses {
           license {
             name = 'Apache 2'
-            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
           }
         }
 
@@ -120,25 +124,14 @@ publishing {
         }
 
         scm {
-          connection = 'scm:git:git@github.com:carrotsearch/gradle-dependencychecks-plugin.git'
-          developerConnection = gradlePlugin.vcsUrl
-          url = gradlePlugin.website
+          connection = 'scm:git:' + project.ext.vcsAddress
+          developerConnection = project.ext.vcsAddress
+          url = websiteAddress
         }
       }
     }
   }
 }
-
-tasks.register("deploy", {
-  dependsOn "publishDependencychecksPluginMarkerMavenPublicationToSonatypeRepository",
-      "publishPluginMavenPublicationToSonatypeRepository",
-      publishPlugins
-})
-
-tasks.register("deployStaging", {
-  dependsOn "publishDependencychecksPluginMarkerMavenPublicationToStagingRepository",
-      "publishPluginMavenPublicationToStagingRepository"
-})
 
 spotless {
   java {

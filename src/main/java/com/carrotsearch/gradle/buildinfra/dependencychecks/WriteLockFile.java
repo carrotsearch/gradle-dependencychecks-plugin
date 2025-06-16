@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.dependencychecks;
+package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
 import java.io.IOException;
 import org.gradle.api.provider.Property;

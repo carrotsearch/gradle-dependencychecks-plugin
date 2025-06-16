@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.dependencychecks;
+package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
 import groovy.lang.Closure;
 import java.util.List;
@@ -60,7 +60,7 @@ public final class DependencyChecksPlugin implements Plugin<Project> {
                             item ->
                                 Objects.equals(item.getGroup(), group)
                                     && Objects.equals(item.getName(), module))
-                        .collect(Collectors.toList());
+                        .toList();
 
                 switch (moduleVersionList.size()) {
                   case 0:

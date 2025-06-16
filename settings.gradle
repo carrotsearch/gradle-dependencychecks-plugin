@@ -1,8 +1,1 @@
-dependencyResolutionManagement {
-  versionCatalogs {
-    deps {
-      from(files('versions.toml'))
-    }
-  }
-}
 rootProject.name = 'gradle-dependencychecks-plugin'

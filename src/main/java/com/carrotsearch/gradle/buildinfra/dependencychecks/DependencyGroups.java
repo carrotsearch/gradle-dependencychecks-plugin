@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.dependencychecks;
+package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;

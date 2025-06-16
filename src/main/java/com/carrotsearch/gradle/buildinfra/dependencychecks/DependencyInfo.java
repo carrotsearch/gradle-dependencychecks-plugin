@@ -1,8 +1,10 @@
-package com.carrotsearch.gradle.dependencychecks;
+package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
 import java.io.Serializable;
-import java.util.*;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**
  * Information about a single (module) dependency: group, module, version and the reasons the
@@ -19,15 +21,19 @@ class DependencyInfo implements Serializable {
   /** One or more "sources" of this dependency. Typically, project path and configuration name. */
   final List<DependencySource> sources;
 
-  DependencyInfo(ModuleComponentIdentifier id) {
+  DependencyInfo(ModuleVersionIdentifier id, List<DependencySource> sources) {
     this.group = id.getGroup();
-    this.module = id.getModule();
+    this.module = id.getName();
     this.version = id.getVersion();
-    this.sources = new ArrayList<>();
+    this.sources = new ArrayList<>(sources);
   }
 
   DependencyInfo(String dependency, List<DependencySource> sources) {
     String[] coords = dependency.split(":");
+    if (coords.length != 3) {
+      throw new RuntimeException(
+          "Something is not right with this dependency coords: " + dependency);
+    }
     this.group = coords[0];
     this.module = coords[1];
     this.version = coords[2];

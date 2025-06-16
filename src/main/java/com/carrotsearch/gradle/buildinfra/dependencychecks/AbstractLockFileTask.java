@@ -1,6 +1,6 @@
-package com.carrotsearch.gradle.dependencychecks;
+package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
-import static com.carrotsearch.gradle.dependencychecks.CheckLocks.fmt;
+import static com.carrotsearch.gradle.buildinfra.dependencychecks.CheckLocks.fmt;
 
 import java.io.IOException;
 import java.util.List;
