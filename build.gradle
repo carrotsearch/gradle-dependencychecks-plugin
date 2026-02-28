@@ -141,7 +141,7 @@ spotless {
   }
 
   groovy {
-    indentWithSpaces(4)
+    leadingTabsToSpaces(4)
     importOrder()
 
     excludeJava()
