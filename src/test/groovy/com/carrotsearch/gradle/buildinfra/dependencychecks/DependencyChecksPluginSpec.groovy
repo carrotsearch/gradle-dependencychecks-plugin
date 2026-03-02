@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.buildinfra.dependencychecks
+package com.carrotsearch.gradle.dependencychecks.it
 
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -19,11 +19,11 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     when:
     def result = gradleRunner()
-        .withArguments(":writeLocks")
+        .withGradleVersion(gradleVersion)
+        .withArguments("--write-locks")
         .run()
 
     then:
-    println result.output
     result.task(":writeLocks").outcome == TaskOutcome.SUCCESS
     lockFileEquals(
         """
@@ -33,6 +33,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           "because" : { }
         }
         """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
   def "lockfile collects dependencies into two groups"() {
@@ -67,6 +70,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     when:
     def result = gradleRunner()
+        .withGradleVersion(gradleVersion)
         .withArguments(":writeLocks", ":checkLocks", "--stacktrace")
         .build()
 
@@ -112,6 +116,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           }
         }
         """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
   def "lock check fails on removed dependency"() {
@@ -174,6 +181,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     expect:
     def result = gradleRunner()
+        .withGradleVersion(gradleVersion)
         .withArguments(":checkLocks", "--stacktrace")
         .forwardOutput()
         .buildAndFail()
@@ -194,6 +202,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
           - regenerate the lockfile using 'gradlew writeLocks', then use git diff to inspect the changes
           - run 'gradlew dependencyInsight --configuration someConf --dependency someDep' to inspect dependencies
         """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
   def "lock check fails on added dependency"() {
@@ -233,7 +244,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     expect:
     def result = gradleRunner()
-
+        .withGradleVersion(gradleVersion)
         .withArguments(":checkLocks")
         .forwardOutput()
         .buildAndFail()
@@ -244,6 +255,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
                 Configuration group: group
                       - org.slf4j:slf4j-api:2.0.9 (new dependency)
             """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
   def "lock check fails on dependency with changed configurations"() {
@@ -294,7 +308,7 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     expect:
     def result = gradleRunner()
-
+        .withGradleVersion(gradleVersion)
         .withArguments(":checkLocks")
         .forwardOutput()
         .buildAndFail()
@@ -308,6 +322,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
                         Configuration runtimeClasspath in root project (removed source)
                         Configuration compileClasspath in root project (new source)
         """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
   def "should not write inconsistent lock file"() {
@@ -340,8 +357,8 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     expect:
     def result = gradleRunner()
-
-        .withArguments(":writeLocks")
+        .withGradleVersion(gradleVersion)
+        .withArguments("--write-locks")
         .forwardOutput()
         .buildAndFail()
 
@@ -356,6 +373,9 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
                  - version 2.0.9 used by:
                      Configuration compileClasspath in root project
         """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
   def "should display version conflicts in subprojects"() {
@@ -409,8 +429,8 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     expect:
     def result = gradleRunner()
-
-        .withArguments(":writeLocks")
+        .withGradleVersion(gradleVersion)
+        .withArguments("--write-locks")
         .forwardOutput()
         .buildAndFail()
 
@@ -443,9 +463,12 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
                  gradlew :subproject-a:dependencyInsight --dependency "org.slf4j:slf4j-api" --configuration "compileClasspath"
                  gradlew :subproject-a:dependencyInsight --dependency "org.slf4j:slf4j-api" --configuration "runtimeClasspath"
         """)
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 
-  def "should fail on --write-locks without writeLocks"() {
+  def "should succeed on --write-locks without writeLocks"() {
     given:
     buildFile(
         """
@@ -456,14 +479,58 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
     expect:
     def result = gradleRunner()
-
+        .withGradleVersion(gradleVersion)
         .withArguments("--write-locks")
         .forwardOutput()
-        .buildAndFail()
+        .run()
 
-    containsLines(result.output,
+    result.task(":writeLocks").outcome == TaskOutcome.SUCCESS
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
+  }
+
+  def "should succeed on :dependencies --write-locks"() {
+    given:
+    buildFile(
         """
-        Use the ':writeLocks' task to write the lock file
+        plugins {
+          id 'com.carrotsearch.gradle.dependencychecks'
+        }
         """)
+
+    expect:
+    def result = gradleRunner()
+        .withGradleVersion(gradleVersion)
+        .withArguments(":dependencies", "--write-locks")
+        .forwardOutput()
+        .run()
+
+    result.task(":writeLocks").outcome == TaskOutcome.SUCCESS
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
+  }
+
+  def "should not execute :writeLocks if --write-locks not provided"() {
+    given:
+    buildFile(
+        """
+        plugins {
+          id 'com.carrotsearch.gradle.dependencychecks'
+        }
+        """)
+
+    expect:
+    def result = gradleRunner()
+        .withGradleVersion(gradleVersion)
+        .withArguments(":dependencies")
+        .forwardOutput()
+        .run()
+
+    result.task(":writeLocks") == null
+
+    where:
+    gradleVersion << CHECKED_GRADLE_VERSIONS
   }
 }
