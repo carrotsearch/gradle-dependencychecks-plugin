@@ -1,7 +1,11 @@
-package com.carrotsearch.gradle.dependencychecks;
+package com.carrotsearch.gradle.buildinfra.dependencychecks;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.gradle.api.GradleException;
@@ -104,10 +108,12 @@ abstract class CheckLocks extends AbstractLockFileTask {
       buf.append("\n\nThe following steps may be helpful to resolve the problem:\n");
       buf.append(
           fmt(
-              "  - regenerate the lockfile using 'gradlew %s', then use git diff to inspect the changes\n",
+              "  - regenerate the lockfile using 'gradlew %s', then use git diff to inspect the"
+                  + " changes\n",
               WriteLockFile.TASK_NAME));
       buf.append(
-          "  - run 'gradlew dependencyInsight --configuration someConf --dependency someDep' to inspect dependencies");
+          "  - run 'gradlew dependencyInsight --configuration someConf --dependency someDep' to"
+              + " inspect dependencies");
 
       throw new GradleException(buf.toString());
     }
