@@ -7,6 +7,11 @@ import spock.lang.Specification
 import spock.lang.TempDir
 
 abstract class AbstractIntegTest extends Specification {
+  final static CHECKED_GRADLE_VERSIONS = [
+    "8.4",
+    "9.3.1"
+  ]
+
   @TempDir
   protected File testProjectDir
 
@@ -34,6 +39,10 @@ abstract class AbstractIntegTest extends Specification {
 
   void lockFile(String text) {
     lockFile.setText(text.stripLeading(), "UTF-8")
+  }
+
+  void subprojectDir(String name) {
+    new File(testProjectDir, name).mkdirs()
   }
 
   GradleRunner gradleRunner() {

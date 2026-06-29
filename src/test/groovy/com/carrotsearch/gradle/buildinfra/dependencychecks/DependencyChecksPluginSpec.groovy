@@ -1,4 +1,4 @@
-package com.carrotsearch.gradle.dependencychecks.it
+package com.carrotsearch.gradle.buildinfra.dependencychecks
 
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -380,6 +380,8 @@ class DependencyChecksPluginSpec extends AbstractIntegTest {
 
   def "should display version conflicts in subprojects"() {
     given:
+    subprojectDir('subproject-a')
+    subprojectDir('subproject-b')
 
     settingsFile(
         """
