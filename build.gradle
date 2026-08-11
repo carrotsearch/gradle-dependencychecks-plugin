@@ -1,6 +1,7 @@
 plugins {
   alias(libs.plugins.gradle.publish)
   alias(libs.plugins.spotless)
+  alias(libs.plugins.benmanes.versions)
   id 'groovy'
   id 'signing'
 }
@@ -137,7 +138,7 @@ spotless {
   java {
     lineEndings = 'UNIX'
     endWithNewline()
-    googleJavaFormat('1.20.0')
+    googleJavaFormat()
   }
 
   groovy {
