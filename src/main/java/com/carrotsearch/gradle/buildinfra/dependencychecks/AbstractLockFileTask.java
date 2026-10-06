@@ -12,10 +12,13 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 /** Parent class for lock file tasks. */
 abstract class AbstractLockFileTask extends DefaultTask {
   @InputFiles
+  @PathSensitive(PathSensitivity.NONE)
   public abstract ConfigurableFileCollection getResolvedConfigurationGroups();
 
   @OutputFile final RegularFileProperty lockFile = getProject().getObjects().fileProperty();

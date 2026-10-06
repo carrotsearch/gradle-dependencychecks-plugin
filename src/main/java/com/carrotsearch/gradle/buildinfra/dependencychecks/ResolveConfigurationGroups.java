@@ -28,7 +28,10 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
+@DisableCachingByDefault(
+    because = "Not worth caching: the input is the resolved content written to the output.")
 public abstract class ResolveConfigurationGroups extends DefaultTask {
   public static final String TASK_NAME = "resolveConfigurationGroups";
 
